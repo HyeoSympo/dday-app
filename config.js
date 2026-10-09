@@ -11,4 +11,4 @@ export const firebaseConfig = {
 };
 
 /* 아침 알림용 공개 키. 설치 안내 5단계에서 tools/make-keys.html 로 만든 "공개 키"를 붙여 넣으십시오. */
-export const vapidPublicKey = "";
+export const vapidPublicKey = "BJFK1rNLBfFGHMB4JyJYfv7gPFllvu-NhL-bzOTnR2whvT6FBd67SyVUrN5w6DC5bch65eCcimLv60Jzss4D2zM";
