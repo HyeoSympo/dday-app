@@ -31,11 +31,11 @@ function write(path, fn) {
 
 function whenText(s, st) {
   if (st.k === "done") return "완료 " + fmt(st.on);
-  if (st.k === "crit") return "마지노선 " + fmt(s.hard) + (st.over > 0 ? " · " + st.over + "일 초과" : " · 오늘");
-  if (st.k === "late") return "지연 " + st.days + "일째" + (st.toHard !== null && st.toHard > 0 ? " · 마지노선까지 " + st.toHard + "일" : "");
-  if (st.k === "today") return st.last ? "오늘 · 마지노선" : "오늘";
+  if (st.k === "crit") return st.over > 0 ? "마지노선 " + fmt(s.hard) + "에서 " + st.over + "일 지남" : "오늘이 마지노선";
+  if (st.k === "late") return "지연 " + st.days + "일째" + (st.toHard !== null && st.toHard > 0 ? ", 마지노선까지 " + st.toHard + "일" : "");
+  if (st.k === "today") return st.last ? "오늘이 마지노선" : "오늘";
   if (st.k === "open") return s.due ? "늦어도 " + fmt(s.due) : s.hard ? "늦어도 " + fmt(s.hard) : "진행 가능";
-  if (s.due) return fmt(s.due) + " · " + st.inDays + "일 후";
+  if (s.due) return fmt(s.due) + ", " + st.inDays + "일 후";
   return s.hard ? "늦어도 " + fmt(s.hard) : "선행 단계 대기";
 }
 function rowHtml(ev, s, st, pre) {
@@ -71,9 +71,9 @@ function renderToday() {
     return { ev, g };
   });
   $("counts").innerHTML = !state.user ? "" :
-    '<span class="count">오늘 ' + tot.today + "</span>" +
-    '<span class="count' + (tot.late ? " is-late" : "") + '">지연 ' + tot.late + "</span>" +
-    '<span class="count' + (tot.crit ? " is-crit" : "") + '">마지노선 ' + tot.crit + "</span>";
+    '<div class="cell"><dt>오늘 할 일</dt><dd>' + tot.today + "</dd></div>" +
+    '<div class="cell' + (tot.late ? " is-late" : "") + '"><dt>지연</dt><dd>' + tot.late + "</dd></div>" +
+    '<div class="cell' + (tot.crit ? " is-crit" : "") + '"><dt>마지노선</dt><dd>' + tot.crit + "</dd></div>";
   if (!state.loaded.events) return;
   if (!state.events.length) {
     box.innerHTML = '<div class="empty"><strong>등록된 행사가 없습니다.</strong><span>행사 탭에서 행사일과 유형을 입력하면, 호텔 정보 요청부터 비용 요약 전달까지의 할 일이 날짜와 함께 만들어집니다.</span></div>';
@@ -114,7 +114,7 @@ function renderEvents() {
     return '<details class="ev" data-ev="' + esc(ev.id) + '"' + (state.open[ev.id] ? " open" : "") + "><summary>" +
       '<span class="dday">' + dLabel(ev, t) + "</span>" +
       '<div><div class="name">' + esc(ev.name) + '</div><div class="meta">' + metaHtml(ev) + "</div></div>" +
-      '<span class="prog">' + nDone + " / " + plan.length + " 완료</span></summary>" +
+      '<span class="prog">' + plan.length + "개 중 " + nDone + "개 완료</span></summary>" +
       '<div class="inner"><ul class="rows">' + rows + '</ul><div class="tools"><button class="btn small" type="button" data-act="edit" data-ev="' + esc(ev.id) + '">행사 수정</button>' + del + "</div></div></details>";
   }).join("") + "</div>";
 }
@@ -129,7 +129,8 @@ function renderHolidays() {
 
 function render() {
   const t = state.today;
-  $("todayLine").textContent = t.replace(/-/g, ".") + " " + DOW[dow(t)] + "요일 기준";
+  const p = t.split("-").map(Number);
+  $("todayLine").textContent = p[1] + "월 " + p[2] + "일 " + DOW[dow(t)] + "요일";
   renderToday(); renderEvents(); renderHolidays();
   if ($("notifyAt").value !== state.notifyAt) $("notifyAt").value = state.notifyAt;
 }
@@ -295,7 +296,7 @@ function bindPushButtons() {
     try {
       if (Notification.permission !== "granted" && (await Notification.requestPermission()) !== "granted") { renderPush(); return; }
       const reg = await navigator.serviceWorker.ready;
-      await reg.showNotification("D-day 수첩 · " + fmt(state.today), { body, icon: "icons/icon-192.png", badge: "icons/badge-96.png", tag: "test" });
+      await reg.showNotification("D-day 수첩 " + fmt(state.today),{ body, icon: "icons/icon-192.png", badge: "icons/badge-96.png", tag: "test" });
     } catch (e) { notice("테스트 알림을 띄우지 못했습니다: " + body); }
   });
 }
@@ -334,7 +335,14 @@ $("hintClose").addEventListener("click", () => { $("installHint").hidden = true;
 $("hintHow").addEventListener("click", () => { setTab("settings"); $("installGroup").scrollIntoView({ behavior: "smooth" }); });
 
 /* ---------- 시작 ---------- */
-function showView(v) { $("bootView").hidden = v !== "boot"; $("loginView").hidden = v !== "login"; $("appView").hidden = v !== "app"; }
+function showView(v) { $("bootView").hidden = v !== "boot"; $("loginView").hidden = v !== "login"; $("appView").hidden = v !== "app"; $("tabs").hidden = v !== "app"; }
+
+/* ---------- 화면 밝기 (이 기기에만 저장) ---------- */
+$("themeSel").value = document.documentElement.getAttribute("data-theme") || "light";
+$("themeSel").addEventListener("change", function () {
+  document.documentElement.setAttribute("data-theme", this.value);
+  lsSet("dday.theme", this.value);
+});
 function stopWatching() { state.unsub.forEach((u) => { try { u(); } catch (e) {} }); state.unsub = []; }
 function startWatching() {
   const st = state.store;

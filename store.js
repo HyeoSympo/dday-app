@@ -2,7 +2,8 @@
    데이터 위치: users/{uid}/events/{행사}, users/{uid}/config/main, users/{uid}/push/{기기} */
 import { firebaseConfig } from "./config.js";
 
-export const configured = !!(firebaseConfig && firebaseConfig.apiKey);
+// 주소 끝에 ?preview 를 붙이면 Firebase 대신 이 기기에만 저장하는 미리보기로 연다 (화면 확인용)
+export const configured = !!(firebaseConfig && firebaseConfig.apiKey) && !new URLSearchParams(location.search).has("preview");
 
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2/";
 

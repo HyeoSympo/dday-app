@@ -1,8 +1,8 @@
 /* 서비스 워커: 오프라인에서도 앱이 열리게 캐시하고, 아침 알림(웹 푸시)을 표시한다.
    앱 파일을 고친 뒤 배포할 때는 VERSION 을 올려 주면 기기의 캐시가 새로 바뀐다. */
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = "dday-" + VERSION;
-const SHELL = ["./", "index.html", "app.js", "store.js", "config.js", "logic.js", "manifest.webmanifest", "icons/icon-192.png", "icons/badge-96.png"];
+const SHELL = ["./", "index.html", "tokens.css", "app.js", "store.js", "config.js", "logic.js", "manifest.webmanifest", "icons/icon-192.png", "icons/badge-96.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

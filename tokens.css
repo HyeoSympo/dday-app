@@ -1,0 +1,103 @@
+/* Hallmark · tokens · genre: modern-minimal · theme: Cobalt (app adaptation) */
+:root {
+  /* paper · ink */
+  --color-paper:     oklch(98.5% 0.004 250);
+  --color-paper-2:   oklch(96.2% 0.006 252);
+  --color-surface:   oklch(99.4% 0.002 250);
+  --color-ink:       oklch(24% 0.02 258);
+  --color-ink-2:     oklch(34% 0.018 257);
+  --color-muted:     oklch(52% 0.015 257);
+  --color-rule:      oklch(90.5% 0.008 255);
+  --color-rule-2:    oklch(84% 0.01 255);
+
+  /* the one signal */
+  --color-accent:     oklch(58% 0.20 256);
+  --color-accent-ink: oklch(99% 0.003 250);
+  --color-accent-soft: oklch(95% 0.03 256);
+  --color-focus:      oklch(58% 0.20 256);
+
+  /* status (meaning only, never decoration) */
+  --color-crit:      oklch(54% 0.19 27);
+  --color-crit-soft: oklch(96.5% 0.022 27);
+  --color-late:      oklch(51% 0.12 65);
+  --color-late-soft: oklch(96.5% 0.03 80);
+  --color-ok:        oklch(54% 0.11 155);
+
+  /* the one dark band */
+  --color-graphite:   oklch(21% 0.016 260);
+  --color-graphite-2: oklch(28% 0.018 260);
+  --color-band-ink:   oklch(96% 0.006 250);
+  --color-band-muted: oklch(70% 0.016 255);
+  --color-band-rule:  oklch(34% 0.018 258);
+  --color-band-late:  oklch(80% 0.14 80);
+  --color-band-crit:  oklch(70% 0.17 27);
+
+  /* type */
+  --font-display: "Space Grotesk", "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-body:    "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-mono:    "JetBrains Mono", "IBM Plex Sans KR", ui-monospace, monospace;
+
+  --text-2xs: 0.75rem;   --text-xs: 0.8125rem;  --text-sm: 0.875rem;
+  --text-md: 0.9375rem;  --text-lg: 1.125rem;   --text-xl: 1.375rem;
+  --text-2xl: clamp(1.75rem, 1.2rem + 2.4vw, 2.5rem);
+  --text-readout: clamp(2rem, 1.4rem + 3vw, 3rem);
+
+  /* 4-pt spacing */
+  --space-3xs: 0.25rem; --space-2xs: 0.5rem; --space-xs: 0.75rem;
+  --space-sm: 1rem;     --space-md: 1.5rem;  --space-lg: 2rem;
+  --space-xl: 3rem;     --space-2xl: 4.5rem;
+
+  --radius-control: 6px; --radius-panel: 10px;
+  --rule-w: 1px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-short: 140ms;
+
+  color-scheme: light;
+}
+
+/* Dark: the paper goes graphite; the band goes one step deeper so it still reads as the band */
+:root[data-theme="dark"] {
+  --color-paper:     oklch(19% 0.014 260);
+  --color-paper-2:   oklch(23% 0.016 260);
+  --color-surface:   oklch(22% 0.016 260);
+  --color-ink:       oklch(95% 0.006 250);
+  --color-ink-2:     oklch(86% 0.01 252);
+  --color-muted:     oklch(68% 0.016 255);
+  --color-rule:      oklch(30% 0.018 258);
+  --color-rule-2:    oklch(38% 0.02 258);
+  --color-accent:     oklch(70% 0.16 256);
+  --color-accent-ink: oklch(18% 0.016 260);
+  --color-accent-soft: oklch(30% 0.06 256);
+  --color-focus:      oklch(70% 0.16 256);
+  --color-crit:      oklch(70% 0.17 27);
+  --color-crit-soft: oklch(27% 0.05 27);
+  --color-late:      oklch(80% 0.14 80);
+  --color-late-soft: oklch(27% 0.04 80);
+  --color-ok:        oklch(74% 0.12 155);
+  --color-graphite:   oklch(14% 0.012 260);
+  --color-graphite-2: oklch(20% 0.014 260);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) { :root[data-theme="auto"] {
+  --color-paper:     oklch(19% 0.014 260);
+  --color-paper-2:   oklch(23% 0.016 260);
+  --color-surface:   oklch(22% 0.016 260);
+  --color-ink:       oklch(95% 0.006 250);
+  --color-ink-2:     oklch(86% 0.01 252);
+  --color-muted:     oklch(68% 0.016 255);
+  --color-rule:      oklch(30% 0.018 258);
+  --color-rule-2:    oklch(38% 0.02 258);
+  --color-accent:     oklch(70% 0.16 256);
+  --color-accent-ink: oklch(18% 0.016 260);
+  --color-accent-soft: oklch(30% 0.06 256);
+  --color-focus:      oklch(70% 0.16 256);
+  --color-crit:      oklch(70% 0.17 27);
+  --color-crit-soft: oklch(27% 0.05 27);
+  --color-late:      oklch(80% 0.14 80);
+  --color-late-soft: oklch(27% 0.04 80);
+  --color-ok:        oklch(74% 0.12 155);
+  --color-graphite:   oklch(14% 0.012 260);
+  --color-graphite-2: oklch(20% 0.014 260);
+  color-scheme: dark;
+} }
