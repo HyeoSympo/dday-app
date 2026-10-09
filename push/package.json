@@ -1,0 +1,9 @@
+{
+  "name": "dday-morning-push",
+  "private": true,
+  "description": "D-day 수첩 아침 알림 발송 (GitHub Actions 전용)",
+  "dependencies": {
+    "firebase-admin": "12.7.0",
+    "web-push": "3.6.7"
+  }
+}

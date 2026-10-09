@@ -1,0 +1,16 @@
+{
+  "name": "D-day 수첩",
+  "short_name": "D-day 수첩",
+  "description": "심포지엄 준비 업무를 행사일 기준으로 역산해 매일 오늘 할 일을 보여 주는 업무 수첩",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F2F5F5",
+  "theme_color": "#0E6B74",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

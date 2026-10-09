@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>알림 키 만들기</title>
+<style>
+  :root { --bg: #F2F5F5; --surface: #FFFFFF; --ink: #14272B; --muted: #5A6D71; --line: #D3DCDD; --accent: #0E6B74; --crit: #B3261E; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0F1719; --surface: #172124; --ink: #E4EEEF; --muted: #93A6AA; --line: #2B3A3E; --accent: #5CC4CC; --crit: #FF8A80; } }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; line-height: 1.6; }
+  main { max-width: 720px; margin: 0 auto; padding: 28px 16px 64px; display: flex; flex-direction: column; gap: 18px; }
+  h1 { margin: 0; font-size: 24px; } p { margin: 0; }
+  .box { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  label { font-weight: 600; } .warn { color: var(--crit); font-size: 14px; } .muted { color: var(--muted); font-size: 14px; }
+  textarea { width: 100%; box-sizing: border-box; font: 13px ui-monospace, Consolas, monospace; padding: 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); resize: vertical; }
+  button { font: inherit; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; align-self: flex-start; }
+  button.ghost { background: transparent; color: var(--accent); }
+</style>
+<main>
+  <h1>아침 알림용 키 만들기</h1>
+  <p class="muted">버튼을 한 번 누르면 공개 키와 비공개 키 한 쌍이 만들어집니다. 키는 이 화면에서만 만들어지며 어디에도 전송되지 않습니다. 한 번 만든 키는 계속 쓰므로 다시 만들 필요가 없습니다.</p>
+  <button type="button" id="gen">키 만들기</button>
+  <p class="warn" id="err" hidden></p>
+  <div class="box" id="out" hidden>
+    <label for="pub">공개 키 (VAPID_PUBLIC_KEY)</label>
+    <p class="muted">① config.js 의 vapidPublicKey 따옴표 안에 붙여 넣고, ② GitHub Secrets 의 VAPID_PUBLIC_KEY 에도 넣습니다.</p>
+    <textarea id="pub" rows="3" readonly></textarea>
+    <button type="button" class="ghost" data-copy="pub">공개 키 복사</button>
+    <label for="priv">비공개 키 (VAPID_PRIVATE_KEY)</label>
+    <p class="warn">GitHub Secrets 의 VAPID_PRIVATE_KEY 에만 넣으십시오. 파일이나 메일에 남기지 마십시오.</p>
+    <textarea id="priv" rows="2" readonly></textarea>
+    <button type="button" class="ghost" data-copy="priv">비공개 키 복사</button>
+  </div>
+</main>
+<script>
+  function b64u(buf) { var s = btoa(String.fromCharCode.apply(null, new Uint8Array(buf))); return s.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+  document.getElementById("gen").addEventListener("click", async function () {
+    var err = document.getElementById("err");
+    try {
+      if (!window.crypto || !crypto.subtle) throw new Error("이 브라우저에서는 키를 만들 수 없습니다. Chrome 또는 Edge 로 여십시오.");
+      var kp = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+      var raw = await crypto.subtle.exportKey("raw", kp.publicKey);
+      var jwk = await crypto.subtle.exportKey("jwk", kp.privateKey);
+      document.getElementById("pub").value = b64u(raw);
+      document.getElementById("priv").value = jwk.d;
+      document.getElementById("out").hidden = false; err.hidden = true;
+    } catch (e) { err.textContent = e.message; err.hidden = false; }
+  });
+  document.addEventListener("click", function (e) {
+    var id = e.target.getAttribute && e.target.getAttribute("data-copy"); if (!id) return;
+    var t = document.getElementById(id); t.select();
+    (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(function () { e.target.textContent = "복사했습니다"; }, function () { document.execCommand("copy"); e.target.textContent = "복사했습니다"; });
+  });
+</script>
+</html>

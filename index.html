@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>D-day 수첩</title>
+<meta name="description" content="심포지엄 준비 업무를 행사일 기준으로 역산해 매일 오늘 할 일을 보여 주는 업무 수첩">
+<meta name="theme-color" content="#0E6B74" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1719" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="D-day 수첩">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@600&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+/* Layout: one ledger column. A fixed mono gutter carries the step number, the row carries the task, the right edge carries the date. */
+:root {
+  --bg: #F2F5F5; --surface: #FFFFFF; --ink: #14272B; --muted: #5A6D71; --line: #D3DCDD;
+  --accent: #0E6B74; --accent-soft: #DCEEEF; --on-accent: #FFFFFF;
+  --crit: #B3261E; --crit-soft: #FBE4E1; --late: #8F5400; --late-soft: #FBEBCF; --ok: #2A7654; --ok-soft: #DDF0E6;
+  --f-display: "Hahmlet", "Noto Serif KR", serif;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0F1719; --surface: #172124; --ink: #E4EEEF; --muted: #93A6AA; --line: #2B3A3E;
+  --accent: #5CC4CC; --accent-soft: #16363A; --on-accent: #0F1719;
+  --crit: #FF8A80; --crit-soft: #3A1917; --late: #F2B84B; --late-soft: #3A2B10; --ok: #6FCF9F; --ok-soft: #143024;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0F1719; --surface: #172124; --ink: #E4EEEF; --muted: #93A6AA; --line: #2B3A3E;
+  --accent: #5CC4CC; --accent-soft: #16363A; --on-accent: #0F1719;
+  --crit: #FF8A80; --crit-soft: #3A1917; --late: #F2B84B; --late-soft: #3A2B10; --ok: #6FCF9F; --ok-soft: #143024;
+  color-scheme: dark }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 860px; margin-inline: auto; padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right)); padding-block: max(28px, env(safe-area-inset-top)) 64px; display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3, p, ul, ol { margin: 0; }
+ul { padding: 0; list-style: none; }
+button, input, select { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.top h1 { font-family: var(--f-display); font-size: 28px; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+.top .date { color: var(--muted); font-size: 14px; }
+.counts { display: flex; flex-wrap: wrap; gap: 8px; }
+.count { font-family: var(--f-mono); font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-variant-numeric: tabular-nums; }
+.count.is-crit { border-color: var(--crit); color: var(--crit); background: var(--crit-soft); }
+.count.is-late { border-color: var(--late); color: var(--late); background: var(--late-soft); }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 14px; cursor: pointer; color: var(--muted); font-weight: 500; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+.notice { padding: 10px 14px; border-left: 3px solid var(--late); background: var(--late-soft); color: var(--ink); font-size: 14px; }
+.notice.info { border-left-color: var(--accent); background: var(--accent-soft); display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); font-weight: 500; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.view { display: flex; flex-direction: column; gap: 24px; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.bar h2, .group h2, .group h3 { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: var(--muted); }
+.group { display: flex; flex-direction: column; gap: 8px; }
+.group h2 .n, .group h3 .n { font-family: var(--f-mono); margin-left: 6px; }
+.group.g-crit h2, .group.g-crit h3 { color: var(--crit); }
+.group.g-late h2, .group.g-late h3 { color: var(--late); }
+
+.rows { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+.row { display: grid; grid-template-columns: 22px 44px minmax(0, 1fr) auto; column-gap: 10px; align-items: start; padding: 11px 14px; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.row input[type="checkbox"] { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--accent); cursor: pointer; }
+.num { font-family: var(--f-mono); font-size: 13px; color: var(--muted); padding-top: 2px; font-variant-numeric: tabular-nums; }
+.what { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.what .title { font-weight: 500; overflow-wrap: anywhere; }
+.what .sub { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; }
+.chip { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 500; white-space: nowrap; }
+.chip.cp { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+.when { font-family: var(--f-mono); font-size: 13px; text-align: right; white-space: nowrap; padding-top: 2px; font-variant-numeric: tabular-nums; }
+.row.st-crit { box-shadow: inset 3px 0 0 var(--crit); }
+.row.st-crit .when { color: var(--crit); }
+.row.st-late { box-shadow: inset 3px 0 0 var(--late); }
+.row.st-late .when { color: var(--late); }
+.row.st-today { box-shadow: inset 3px 0 0 var(--accent); }
+.row.st-done .title { color: var(--muted); text-decoration: line-through; }
+.row.st-done .when { color: var(--ok); }
+/* CP 증빙 단계가 지연·마지노선이면 행 전체를 경고색으로 */
+.row.cp.st-late, .row.cp.st-crit { background: var(--crit-soft); box-shadow: inset 4px 0 0 var(--crit); }
+.row.cp.st-late .when { color: var(--crit); }
+.row.cp.st-late .chip.cp, .row.cp.st-crit .chip.cp { background: var(--crit); border-color: var(--crit); color: var(--surface); }
+.row > .btn { justify-self: end; }
+.mini { display: flex; gap: 6px; margin-top: 4px; }
+@media (max-width: 520px) {
+  .row { grid-template-columns: 22px 36px minmax(0, 1fr); }
+  .when { grid-column: 3; text-align: left; padding-top: 0; }
+  .row > .btn { grid-column: 3; justify-self: start; }
+}
+
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 7px 12px; cursor: pointer; font-weight: 500; }
+.btn:hover { border-color: var(--accent); }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.small { padding: 3px 9px; font-size: 13px; }
+.btn.danger { color: var(--crit); }
+
+.empty { border: 1px dashed var(--line); border-radius: 6px; padding: 22px 18px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.empty strong { color: var(--ink); font-weight: 600; }
+
+form.panel, .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label { font-size: 13px; color: var(--muted); }
+.field input, .field select { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 7px 9px; font-size: 16px; }
+.field .hint { font-size: 12px; color: var(--muted); }
+fieldset { border: 0; border-top: 1px solid var(--line); padding: 12px 0 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+legend { font-size: 13px; color: var(--muted); padding: 0 8px 0 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.err { color: var(--crit); font-size: 13px; }
+.ok-msg { color: var(--ok); font-size: 13px; }
+
+.ev { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+.ev summary { list-style: none; cursor: pointer; padding: 14px; display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.ev summary::-webkit-details-marker { display: none; }
+.dday { font-family: var(--f-mono); font-size: 17px; color: var(--accent); font-variant-numeric: tabular-nums; }
+.ev .name, .tev .name { font-weight: 600; overflow-wrap: anywhere; }
+.ev .meta, .tev .meta { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: center; }
+.prog { font-family: var(--f-mono); font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ev .inner { border-top: 1px solid var(--line); }
+.ev .inner .rows { border: 0; border-radius: 0; background: none; }
+.ev .tools { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--line); }
+.phase { padding: 8px 14px; font-size: 12px; letter-spacing: 0.06em; color: var(--muted); background: var(--bg); border-top: 1px solid var(--line); }
+.phase:first-child { border-top: 0; }
+@media (max-width: 520px) { .ev summary { grid-template-columns: 60px minmax(0, 1fr); } .prog { grid-column: 2; } }
+
+.tevs { display: flex; flex-direction: column; gap: 36px; }
+.tev { display: flex; flex-direction: column; gap: 14px; }
+.tev-head { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; align-items: center; padding-bottom: 10px; border-bottom: 2px solid var(--ink); }
+.tev .name { font-size: 17px; }
+@media (max-width: 520px) { .tev-head { grid-template-columns: 60px minmax(0, 1fr); } }
+.help { font-size: 13px; color: var(--muted); max-width: 65ch; }
+.help b { color: var(--ink); font-weight: 600; }
+ol.steps { padding-left: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+.login { max-width: 420px; }
+.status-line { font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>D-day 수첩</h1>
+      <p class="date" id="todayLine">오늘 날짜를 확인하는 중입니다.</p>
+    </div>
+    <div class="counts" id="counts"></div>
+  </header>
+
+  <p class="notice" id="notice" hidden></p>
+  <p class="notice info" id="installHint" hidden>
+    <span>홈 화면에 추가하면 앱처럼 열리고 아침 알림을 받을 수 있습니다.</span>
+    <span class="actions"><button class="linkbtn" type="button" id="hintHow">방법 보기</button><button class="linkbtn" type="button" id="hintClose">닫기</button></span>
+  </p>
+
+  <section id="bootView"><div class="empty"><strong>앱을 여는 중입니다.</strong></div></section>
+
+  <section id="loginView" class="view" hidden>
+    <form class="panel login" id="loginForm" novalidate>
+      <h2 style="font-size:17px">로그인</h2>
+      <p class="help">Firebase에 등록한 본인 계정으로 로그인하십시오. 한 번 로그인하면 이 기기에서는 계속 유지됩니다.</p>
+      <div class="field"><label for="lgEmail">이메일</label><input id="lgEmail" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="lgPw">비밀번호</label><input id="lgPw" type="password" autocomplete="current-password" required></div>
+      <p class="err" id="lgErr" hidden></p>
+      <p class="ok-msg" id="lgOk" hidden></p>
+      <div class="actions">
+        <button class="btn primary" type="submit" id="lgBtn">로그인</button>
+        <button class="linkbtn" type="button" id="lgReset">비밀번호 재설정 메일 받기</button>
+      </div>
+    </form>
+  </section>
+
+  <div id="appView" class="view" hidden>
+    <nav class="tabs" role="tablist" aria-label="화면 선택">
+      <button class="tab" role="tab" id="tab-today" data-tab="today" aria-selected="true">오늘</button>
+      <button class="tab" role="tab" id="tab-events" data-tab="events" aria-selected="false">행사</button>
+      <button class="tab" role="tab" id="tab-settings" data-tab="settings" aria-selected="false">설정</button>
+    </nav>
+
+    <section class="view" id="view-today" aria-labelledby="tab-today">
+      <div id="todayBody">
+        <div class="empty"><strong>저장된 일정을 불러오는 중입니다.</strong><span>행사를 등록하면 행사일에서 역산한 오늘 할 일이 이 화면에 나타납니다.</span></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-events" aria-labelledby="tab-events" hidden>
+      <div class="bar">
+        <h2>등록된 행사</h2>
+        <button class="btn primary" id="btnNewEvent" type="button">행사 등록</button>
+      </div>
+      <form class="panel" id="eventForm" hidden novalidate>
+        <input type="hidden" id="evId">
+        <div class="fields">
+          <div class="field"><label for="evName">행사명</label><input id="evName" type="text" maxlength="60" required></div>
+          <div class="field"><label for="evHotel">호텔·베뉴</label><input id="evHotel" type="text" maxlength="60"></div>
+          <div class="field"><label for="evStart">행사 시작일</label><input id="evStart" type="date" required></div>
+          <div class="field"><label for="evEnd">행사 종료일</label><input id="evEnd" type="date"><span class="hint">당일 행사는 비워 두십시오.</span></div>
+          <div class="field"><label for="evType">행사 유형</label>
+            <select id="evType"><option value="pharma">의약품 (교통비 선급금)</option><option value="device">의료기기 (교통비 후지급)</option><option value="nurse">간호사 대상 (교통비 후지급)</option></select></div>
+          <div class="field"><label for="evKickoff">Kick-off 미팅</label>
+            <select id="evKickoff"><option value="ask">미정 (D-44에 결정)</option><option value="yes">진행</option><option value="no">생략</option></select></div>
+        </div>
+        <fieldset>
+          <legend>담당자</legend>
+          <div class="fields">
+            <div class="field"><label for="evPm">담당 PM 이름</label><input id="evPm" type="text" maxlength="30"></div>
+            <div class="field"><label for="evPmOrg">담당 PM 소속</label><input id="evPmOrg" type="text" maxlength="40"></div>
+            <div class="field"><label for="evHead">담당 소장</label>
+              <select id="evHead"><option value="">담당 소장이 있는 행사입니까?</option><option value="yes">있음</option><option value="no">없음 (생략)</option></select></div>
+          </div>
+          <div class="fields" id="headFields" hidden>
+            <div class="field"><label for="evHeadName">소장 이름</label><input id="evHeadName" type="text" maxlength="30"></div>
+            <div class="field"><label for="evHeadOrg">소장 소속</label><input id="evHeadOrg" type="text" maxlength="40"></div>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>선택 입력. 비워 두면 기본 기준으로 계산합니다.</legend>
+          <div class="fields">
+            <div class="field"><label for="evEarly">호텔 정보 요청 착수일</label><input id="evEarly" type="date"><span class="hint">기본 D-60. PM·소장님 요청 시 앞당김</span></div>
+            <div class="field"><label for="evDue14">체크리스트·루밍리스트 1차 기한</label><input id="evDue14" type="date"><span class="hint">기본 D-14. 호텔 회신 후 입력</span></div>
+            <div class="field"><label for="evDue21">최종 루밍리스트 기한</label><input id="evDue21" type="date"><span class="hint">기본 D-3 ~ D-2</span></div>
+            <div class="field" id="depositField"><label for="evDeposit">교통비 선급금 입금일</label><input id="evDeposit" type="date"><span class="hint">의약품만 해당. 기본은 행사 직전 수요일</span></div>
+          </div>
+        </fieldset>
+        <p class="help">참석자 명단 등 고객 개인정보는 입력하지 않습니다.</p>
+        <p class="err" id="evErr" hidden></p>
+        <div class="actions">
+          <button class="btn primary" type="submit" id="evSave">저장</button>
+          <button class="btn" type="button" id="evCancel">취소</button>
+        </div>
+      </form>
+      <div id="eventList"></div>
+    </section>
+
+    <section class="view" id="view-settings" aria-labelledby="tab-settings" hidden>
+      <div class="group">
+        <h2>아침 알림</h2>
+        <div class="panel">
+          <p class="help">평일(주말·공휴일·추가 휴무일 제외) 아침에 "오늘 할 일 n건, 지연 n건, 마지노선 n건"을 보내 드립니다.</p>
+          <div class="fields">
+            <div class="field"><label for="notifyAt">알림 시각 (한국 시간)</label><select id="notifyAt"></select>
+              <span class="hint">서버 예약 작업 특성상 몇 분 늦게 도착할 수 있습니다.</span></div>
+          </div>
+          <div id="pushBox"><p class="status-line">알림 상태를 확인하는 중입니다.</p></div>
+        </div>
+      </div>
+
+      <div class="group" id="installGroup">
+        <h2>앱 설치</h2>
+        <div class="panel">
+          <div>
+            <p class="status-line"><b>iPhone</b> (iOS 16.4 이상)</p>
+            <ol class="steps">
+              <li>Safari로 이 페이지를 엽니다. (다른 브라우저에서는 설치·알림이 되지 않습니다.)</li>
+              <li>화면 아래 가운데의 공유 버튼(네모에 위쪽 화살표)을 누릅니다.</li>
+              <li>목록을 내려 "홈 화면에 추가"를 누르고, 오른쪽 위 "추가"를 누릅니다.</li>
+              <li>홈 화면의 D-day 수첩 아이콘으로 앱을 연 뒤 로그인하고, 이 설정 화면에서 "이 기기에서 알림 받기"를 누릅니다.</li>
+            </ol>
+          </div>
+          <div>
+            <p class="status-line"><b>PC</b> (Chrome 또는 Edge)</p>
+            <ol class="steps">
+              <li>주소창 오른쪽의 설치 아이콘(모니터에 아래 화살표)을 누르고 "설치"를 누릅니다.</li>
+              <li>바탕화면·시작 메뉴에 생긴 아이콘으로 엽니다.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>추가 휴무일</h2>
+        <p class="help">날짜가 주말·공휴일에 걸리면 직전 평일로 옮겨 계산합니다. 2026~2027년 공휴일은 들어 있으며, 회사 휴무일이나 새로 지정된 공휴일은 여기에 추가하십시오. 추가한 휴무일에는 아침 알림도 보내지 않습니다.</p>
+        <form class="panel" id="holidayForm" novalidate>
+          <div class="fields">
+            <div class="field"><label for="hDate">날짜</label><input id="hDate" type="date" required></div>
+          </div>
+          <div class="actions"><button class="btn primary" type="submit">휴무일 추가</button></div>
+        </form>
+        <div id="holidayList"></div>
+      </div>
+
+      <div class="group">
+        <h2>사용 안내</h2>
+        <p class="help"><b>완료 처리</b>는 오늘 화면이나 행사 화면의 체크 칸을 누르면 휴대폰과 PC에 함께 반영됩니다.</p>
+        <p class="help"><b>CP 증빙 단계</b>(교통비, 방명록 서명본, 비용 요약)는 지연되면 붉은 바탕으로 표시됩니다.</p>
+        <p class="help"><b>입력 범위</b>는 행사 정보와 사내 담당자까지입니다. 참석자 명단 등 고객 개인정보는 넣지 마십시오.</p>
+      </div>
+
+      <div class="group">
+        <h2>계정</h2>
+        <div class="panel">
+          <p class="status-line" id="acctLine"></p>
+          <div class="actions"><button class="btn" type="button" id="btnSignOut">로그아웃</button></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+<script src="logic.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

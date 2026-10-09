@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>날짜 로직 테스트</title>
+<style>
+  body { font-family: "Malgun Gothic", sans-serif; margin: 24px; background: #F2F5F5; color: #14272B; }
+  li { padding: 2px 0; } .ok { color: #2A7654; } .ng { color: #B3261E; font-weight: 600; }
+</style>
+<h1 id="sum">테스트 실행 중</h1>
+<ul id="list"></ul>
+<script src="../logic.js"></script>
+<script src="logic.test.js"></script>
+<script>
+  var r = window.TEST_RESULTS || [], bad = r.filter(function (x) { return !x.ok; }).length;
+  document.getElementById("sum").textContent = (r.length - bad) + " / " + r.length + " 통과";
+  document.getElementById("list").innerHTML = r.map(function (x) {
+    return '<li class="' + (x.ok ? "ok" : "ng") + '">' + (x.ok ? "통과 " : "실패 ") + x.name + (x.ok ? "" : " — " + x.detail) + "</li>";
+  }).join("");
+</script>
