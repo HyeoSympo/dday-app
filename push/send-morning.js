@@ -16,9 +16,11 @@ function kstNow() {
 }
 
 async function main() {
-  for (const k of ["FIREBASE_SERVICE_ACCOUNT", "VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY"]) {
-    if (!process.env[k]) throw new Error("GitHub 저장소 Secrets 에 " + k + " 가 없습니다. 설치 안내 5단계를 확인하십시오.");
-  }
+  const keys = ["FIREBASE_SERVICE_ACCOUNT", "VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY"];
+  const missing = keys.filter((k) => !process.env[k]);
+  // 셋 다 없으면 아직 알림을 설정하기 전이므로 조용히 끝낸다(실패 메일이 가지 않게). 일부만 있으면 설정 실수이므로 실패로 알린다.
+  if (missing.length === keys.length && !FORCE) { console.log("아침 알림이 아직 설정되지 않았습니다. 설치 안내 5단계를 진행하십시오."); return; }
+  if (missing.length) throw new Error("GitHub 저장소 Secrets 에 " + missing.join(", ") + " 가 없습니다. 설치 안내 5단계를 확인하십시오.");
   admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
   webpush.setVapidDetails(APP_URL.startsWith("https://") ? APP_URL : "mailto:noreply@example.com", process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
   const db = admin.firestore();
