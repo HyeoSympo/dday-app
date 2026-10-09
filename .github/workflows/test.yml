@@ -1,0 +1,16 @@
+# 파일을 올릴 때마다 날짜 로직 기준값 테스트를 실행한다. 실패하면 Actions 탭에 빨간 X 가 표시된다.
+name: 날짜 로직 테스트
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tests/logic.test.js

@@ -1,0 +1,50 @@
+# 아침 알림. 한국 시간 07:03 ~ 09:53 사이 10분마다 실행되고,
+# 스크립트가 설정한 알림 시각·근무일·오늘 발송 여부를 확인해 하루 한 번만 보낸다.
+name: 아침 알림
+
+on:
+  schedule:
+    - cron: "3-59/10 22,23 * * *"   # UTC 22~23시 = 한국 07~08시
+    - cron: "3-59/10 0 * * *"       # UTC 0시 = 한국 09시
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "시각·요일과 관계없이 지금 보내기 (테스트용)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: morning-push
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 준비
+        run: |
+          npm install --prefix push --no-audit --no-fund --loglevel=error
+          echo "APP_URL=https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_ENV"
+      - name: 알림 발송
+        run: node push/send-morning.js
+        env:
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+      # GitHub 은 60일 동안 저장소 변경이 없으면 예약 작업을 멈춘다. 매 실행마다 다시 켜 두어 멈추지 않게 한다.
+      - name: 예약 작업 유지
+        if: github.event_name == 'schedule'
+        continue-on-error: true
+        run: gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/morning.yml/enable"
+        env:
+          GH_TOKEN: ${{ github.token }}
